@@ -70,7 +70,7 @@ chatContainer.scrollTop = chatContainer.scrollHeight;
 const messageDiv = document.getElementById(uniqueID);
 loader(messageDiv);
 // fetch data from server -> bot's response
-const response = await fetch('http://localhost:5000', {
+const response = await fetch('https://openai-wb2i.onrender.com5000', {
 method: 'POST',
 headers:{
   'Content-Type': 'application/json'
