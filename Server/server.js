@@ -17,6 +17,9 @@ app.use(express.json());
 // Conversation history storage
 let conversation = [];
 
+// Maximum token limit
+const MAX_TOKENS = 3000;
+
 app.get('/', async (req, res) => {
   res.status(200).send({
     message: 'Hello from Codex',
@@ -27,14 +30,17 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
-    // Concatenate conversation history with prompt
-    const fullPrompt = conversation.concat(prompt).join('\n');
+    // Check if conversation history exceeds maximum token limit
+    const conversationTokens = conversation.join(' ').split(' ').length;
+    if (conversationTokens >= MAX_TOKENS) {
+      conversation = [];
+    }
 
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: fullPrompt,
+      prompt: `${conversation.join('\n')} ${prompt}`,
       temperature: 0.5,
-      max_tokens: 3000,
+      max_tokens: MAX_TOKENS,
       top_p: 1.0,
       frequency_penalty: 0.5,
       presence_penalty: 0.0,
@@ -43,17 +49,11 @@ app.post('/', async (req, res) => {
     const botResponse = response.data.choices[0].text;
 
     // Add user input and AI response to conversation history
-    conversation.push(prompt);
-    conversation.push(botResponse);
-
-    // Check if conversation history exceeds the max length
-    const maxHistoryLength = 20;
-    if (conversation.length > maxHistoryLength) {
-      conversation = conversation.slice(-maxHistoryLength);
-    }
-
-    res.status(200).send({
-      tutor: botResponse,
+    conversation.push({ role: 'user', content: prompt });
+    conversation.push({ role: 'bot', content: botResponse });
+s
+    res.statu(200).send({
+      bot: botResponse,
     });
   } catch (error) {
     console.log(error);
@@ -61,15 +61,4 @@ app.post('/', async (req, res) => {
   }
 });
 
-app.post('/reset', async (req, res) => {
-  // Reset conversation history
-  conversation = [];
-
-  res.status(200).send({
-    message: 'Conversation history has been reset.',
-  });
-});
-
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
-
-
