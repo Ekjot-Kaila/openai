@@ -52,7 +52,7 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
 
-    res.statu(200).send({
+    res.status(200).send({
       bot: botResponse,
     });
   } catch (error) {
