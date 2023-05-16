@@ -16,9 +16,11 @@ app.use(express.json());
 
 // Conversation history storage
 let conversation = [];
+let conversationCount = 0;
 
 // Maximum token limit
 const MAX_TOKENS = 3000;
+const MAX_CONVERSATIONS = 20;
 
 app.get('/', async (req, res) => {
   res.status(200).send({
@@ -30,10 +32,11 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
-    // Check if conversation history exceeds maximum token limit
+    // Check if conversation history exceeds maximum token limit or conversation count
     const conversationTokens = conversation.join(' ').split(' ').length;
-    if (conversationTokens >= MAX_TOKENS) {
+    if (conversationTokens >= MAX_TOKENS || conversationCount >= MAX_CONVERSATIONS) {
       conversation = [];
+      conversationCount = 0;
     }
 
     const response = await openai.createCompletion({
@@ -52,6 +55,8 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
 
+    conversationCount++;
+
     res.status(200).send({
       bot: botResponse,
     });
@@ -62,3 +67,4 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
+
