@@ -37,7 +37,7 @@ app.post('/', async (req, res) => {
       model: 'text-davinci-003',
       prompt: `${conversationPrompt}\nUser: ${prompt}`,
       temperature: 0.5,
-      max_tokens: 3000,
+      max_tokens: 10000,
       top_p: 1.0,
       frequency_penalty: 0.5,
       presence_penalty: 0.0,
@@ -50,7 +50,7 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'bot', content: botResponse });
 
     // Reset the conversation history if it exceeds 20 entries
-    if (conversation.length > 40) {
+    if (conversation.length >20) {
       conversation.splice(0, conversation.length - 40);
     }
 
