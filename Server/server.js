@@ -1,7 +1,7 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from 'openai';
 
 dotenv.config();
 
@@ -17,12 +17,9 @@ app.use(express.json());
 // Conversation history storage
 let conversation = [];
 
-// Maximum number of conversation history to keep
-const MAX_HISTORY_LENGTH = 5;
-
 app.get('/', async (req, res) => {
   res.status(200).send({
-    message: 'Hello from OpenAI Codex!',
+    message: 'Hello from Codex',
   });
 });
 
@@ -30,17 +27,12 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
-    // Add user input to conversation history
-    conversation.push({ role: 'user', content: prompt });
-
-    // Limit conversation history to maximum length
-    if (conversation.length > MAX_HISTORY_LENGTH) {
-      conversation = conversation.slice(conversation.length - MAX_HISTORY_LENGTH);
-    }
+    // Concatenate conversation history with prompt
+    const fullPrompt = conversation.concat(prompt).join('\n');
 
     const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `${conversation.map(entry => entry.role === 'user' ? `You: ${entry.content}` : `Tutor: ${entry.content}`).join('\n')}`,
+      model: 'text-davinci-003',
+      prompt: fullPrompt,
       temperature: 0.5,
       max_tokens: 3000,
       top_p: 1.0,
@@ -48,13 +40,20 @@ app.post('/', async (req, res) => {
       presence_penalty: 0.0,
     });
 
-    const tutorResponse = response.data.choices[0].text;
+    const botResponse = response.data.choices[0].text;
 
-    // Add tutor response to conversation history
-    conversation.push({ role: 'tutor', content: tutorResponse });
+    // Add user input and AI response to conversation history
+    conversation.push(prompt);
+    conversation.push(botResponse);
+
+    // Check if conversation history exceeds the max length
+    const maxHistoryLength = 20;
+    if (conversation.length > maxHistoryLength) {
+      conversation = conversation.slice(-maxHistoryLength);
+    }
 
     res.status(200).send({
-      tutor: tutorResponse,
+      tutor: botResponse,
     });
   } catch (error) {
     console.log(error);
@@ -62,5 +61,15 @@ app.post('/', async (req, res) => {
   }
 });
 
+app.post('/reset', async (req, res) => {
+  // Reset conversation history
+  conversation = [];
+
+  res.status(200).send({
+    message: 'Conversation history has been reset.',
+  });
+});
+
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
+
 
