@@ -27,7 +27,6 @@ try{
     const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt: `Pretend you are a personal tutor. Answer with a positive tone. 
-        Your task is to help the student. Introduce yourself as a personal tutor named Jacob.
         
         ${prompt}`,
         temperature: 0.5,
