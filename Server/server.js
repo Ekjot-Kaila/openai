@@ -51,7 +51,7 @@ app.post('/', async (req, res) => {
     // Add user input and AI response to conversation history
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
-s
+
     res.statu(200).send({
       bot: botResponse,
     });
