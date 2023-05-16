@@ -1,7 +1,7 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from 'openai';
 
 dotenv.config();
 
@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Conversation history storage
-let conversation = [];
+const conversation = [];
 
 app.get('/', async (req, res) => {
   res.status(200).send({
@@ -26,9 +26,13 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
+
+    // Include the entire conversation history in the prompt
+    const conversationPrompt = conversation.map(entry => `${entry.role}: ${entry.content}`).join('\n');
+
     const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `${conversation} ${prompt}`,
+      model: 'text-davinci-003',
+      prompt: `${conversationPrompt}\nUser: ${prompt}`,
       temperature: 0.5,
       max_tokens: 3000,
       top_p: 1.0,
@@ -52,3 +56,4 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
+
