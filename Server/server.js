@@ -15,12 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Conversation history storage
-let conversation = [];
-let conversationCount = 0;
-
-// Maximum token limit
-const MAX_TOKENS = 3000;
-const MAX_CONVERSATIONS = 20;
+const conversation = [];
 
 app.get('/', async (req, res) => {
   res.status(200).send({
@@ -32,18 +27,17 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
-    // Check if conversation history exceeds maximum token limit or conversation count
-    const conversationTokens = conversation.join(' ').split(' ').length;
-    if (conversationTokens >= MAX_TOKENS || conversationCount >= MAX_CONVERSATIONS) {
-      conversation = [];
-      conversationCount = 0;
-    }
+    // Include the conversation history up to 20 entries in the prompt
+    const conversationPrompt = conversation
+      .slice(-20) // Get the last 20 entries
+      .map(entry => `${entry.role}: ${entry.content}`)
+      .join('\n');
 
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `${conversation.join('\n')} ${prompt}`,
+      prompt: `${conversationPrompt}\nUser: ${prompt}`,
       temperature: 0.5,
-      max_tokens: MAX_TOKENS,
+      max_tokens: 3000,
       top_p: 1.0,
       frequency_penalty: 0.5,
       presence_penalty: 0.0,
@@ -55,10 +49,13 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
 
-    conversationCount++;
+    // Reset the conversation history if it exceeds 20 entries
+    if (conversation.length > 40) {
+      conversation.splice(0, conversation.length - 40);
+    }
 
     res.status(200).send({
-      bot: botResponse,
+      tutor: botResponse,
     });
   } catch (error) {
     console.log(error);
@@ -67,4 +64,6 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
+
+
 
