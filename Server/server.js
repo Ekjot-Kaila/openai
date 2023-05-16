@@ -1,7 +1,7 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
-import { Configuration, OpenAIApi } from 'openai';
+import { Configuration, OpenAIApi } from "openai";
 
 dotenv.config();
 
@@ -17,12 +17,12 @@ app.use(express.json());
 // Conversation history storage
 let conversation = [];
 
-// Maximum token limit
-const MAX_TOKENS = 3000;
+// Maximum number of conversation history to keep
+const MAX_HISTORY_LENGTH = 5;
 
 app.get('/', async (req, res) => {
   res.status(200).send({
-    message: 'Hello from Codex',
+    message: 'Hello from OpenAI Codex!',
   });
 });
 
@@ -30,30 +30,31 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
-    // Check if conversation history exceeds maximum token limit
-    const conversationTokens = conversation.join(' ').split(' ').length;
-    if (conversationTokens >= MAX_TOKENS) {
-      conversation = [];
+    // Add user input to conversation history
+    conversation.push({ role: 'user', content: prompt });
+
+    // Limit conversation history to maximum length
+    if (conversation.length > MAX_HISTORY_LENGTH) {
+      conversation = conversation.slice(conversation.length - MAX_HISTORY_LENGTH);
     }
 
     const response = await openai.createCompletion({
-      model: 'text-davinci-003',
-      prompt: `${conversation.join('\n')} ${prompt}`,
+      model: "text-davinci-003",
+      prompt: `${conversation.map(entry => entry.role === 'user' ? `You: ${entry.content}` : `Tutor: ${entry.content}`).join('\n')}`,
       temperature: 0.5,
-      max_tokens: MAX_TOKENS,
+      max_tokens: 3000,
       top_p: 1.0,
       frequency_penalty: 0.5,
       presence_penalty: 0.0,
     });
 
-    const botResponse = response.data.choices[0].text;
+    const tutorResponse = response.data.choices[0].text;
 
-    // Add user input and AI response to conversation history
-    conversation.push({ role: 'user', content: prompt });
-    conversation.push({ role: 'bot', content: botResponse });
+    // Add tutor response to conversation history
+    conversation.push({ role: 'tutor', content: tutorResponse });
 
     res.status(200).send({
-      bot: botResponse,
+      tutor: tutorResponse,
     });
   } catch (error) {
     console.log(error);
@@ -62,3 +63,4 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
+
