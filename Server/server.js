@@ -15,7 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 // Conversation history storage
-const conversation = [];
+let conversation = [];
+let conversationCount = 0;
 
 app.get('/', async (req, res) => {
   res.status(200).send({
@@ -26,18 +27,11 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
-
-    // Include the conversation history up to 20 entries in the prompt
-    const conversationPrompt = conversation
-      .slice(-20) // Get the last 20 entries
-      .map(entry => `${entry.role}: ${entry.content}`)
-      .join('\n');
-
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `${conversationPrompt}\nUser: ${prompt}`,
+      prompt: `${conversation} ${prompt}`,
       temperature: 0.5,
-      max_tokens: 10000,
+      max_tokens: 3000,
       top_p: 1.0,
       frequency_penalty: 0.5,
       presence_penalty: 0.0,
@@ -49,9 +43,12 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
 
-    // Reset the conversation history if it exceeds 20 entries
-    if (conversation.length >20) {
-      conversation.splice(0, conversation.length - 40);
+    conversationCount++;
+
+    // Reset conversation history after 20 conversations
+    if (conversationCount >= 20) {
+      conversation = [];
+      conversationCount = 0;
     }
 
     res.status(200).send({
@@ -64,6 +61,3 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server is running on port http://localhost:5000'));
-
-
-
