@@ -97,4 +97,21 @@ form.addEventListener('keyup', (e) => {
   }
 })
 
+// Make an initial request to the server upon page load
+window.addEventListener('load', () => {
+  fetch('https://serversideopenai.onrender.com')
+    .then(response => response.json())
+    .then(data => {
+      const botResponse = data.bot;
+      // Display the introductory prompt to the user
+      const uniqueID = generateUniqueId();
+      chatContainer.innerHTML += chatStripe(true, botResponse, uniqueID);
+      const messageDiv = document.getElementById(uniqueID);
+      messageDiv.classList.add('prompt');
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+});
 
