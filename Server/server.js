@@ -1,7 +1,7 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from 'openai';
 
 dotenv.config();
 
@@ -27,8 +27,8 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
     const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `${conversation} ${prompt}`,
+      model: 'text-davinci-003',
+      prompt: `${conversation.map(entry => `${entry.role}: ${entry.content}`).join('\n')}User: ${prompt}`,
       temperature: 0.5,
       max_tokens: 3000,
       top_p: 1.0,
@@ -42,8 +42,13 @@ app.post('/', async (req, res) => {
     conversation.push({ role: 'user', content: prompt });
     conversation.push({ role: 'bot', content: botResponse });
 
+    // Reset conversation history after 20 interactions
+    if (conversation.length >= 40) {
+      conversation = [];
+    }
+
     res.status(200).send({
-      bot: botResponse,
+      tutor: botResponse,
     });
   } catch (error) {
     console.log(error);
