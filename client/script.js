@@ -81,7 +81,7 @@ clearInterval(loadInterval);
 messageDiv.innerHTML = '';
 if(response.ok){
 const data = await response.json();
-const parseData = data.bot.trim();
+const parseData = data.bot.response;
 typeText(messageDiv, parseData);
 }else{
   const err = await response.text();
