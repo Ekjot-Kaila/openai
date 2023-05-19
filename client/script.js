@@ -99,7 +99,7 @@ form.addEventListener('keyup', (e) => {
 
 // Make an initial request to the server upon page load
 window.addEventListener('load', () => {
-  const botResponse = "Hi there! I'm Jacob, your personal tutor. How can I assist you today?";
+  const botResponse = "Hi there! I'm Jacob, your personal tutor. Please type in a topic you would like a learning plan for.";
 
   // Display the introductory prompt to the user
   const uniqueID = generateUniqueId();
