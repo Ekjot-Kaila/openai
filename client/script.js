@@ -70,7 +70,7 @@ chatContainer.scrollTop = chatContainer.scrollHeight;
 const messageDiv = document.getElementById(uniqueID);
 loader(messageDiv);
 // fetch data from server -> bot's response
-const response = await fetch('https://lihcxopqef.eu08.qoddiapp.com/', {
+const response = await fetch('https://lihcxopqef.eu08.qoddiapp.com', {
 method: 'POST',
 headers:{
   'Content-Type': 'application/json'
